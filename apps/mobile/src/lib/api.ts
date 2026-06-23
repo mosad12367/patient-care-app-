@@ -2,9 +2,16 @@ import { supabase } from './supabase'
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001'
 
+export class UnauthorizedError extends Error {
+  constructor() {
+    super('Not authenticated')
+    this.name = 'UnauthorizedError'
+  }
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return {}
+  if (!session) throw new UnauthorizedError()
   return { Authorization: `Bearer ${session.access_token}` }
 }
 
