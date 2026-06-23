@@ -4,10 +4,12 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   const { user, error } = await requireAuth(request)
   if (error) return error
+
+  const { token } = await params
 
   const supabase = createSupabaseServerClient()
 
@@ -15,7 +17,7 @@ export async function POST(
   const { data: relationship, error: findError } = await supabase
     .from('relationships')
     .select('*')
-    .eq('invite_token', params.token)
+    .eq('invite_token', token)
     .eq('status', 'pending')
     .single()
 
