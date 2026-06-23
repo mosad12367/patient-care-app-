@@ -1,0 +1,36 @@
+import { supabase } from './supabase'
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001'
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return {}
+  return { Authorization: `Bearer ${session.access_token}` }
+}
+
+async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown
+): Promise<T> {
+  const headers = await getAuthHeaders()
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: response.statusText }))
+    throw new Error(error.error ?? 'Request failed')
+  }
+
+  return response.json() as Promise<T>
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>('GET', path),
+  post: <T>(path: string, body: unknown) => request<T>('POST', path, body),
+  patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, body),
+  del: <T>(path: string, body?: unknown) => request<T>('DELETE', path, body),
+}

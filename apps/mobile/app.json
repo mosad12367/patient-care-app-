@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Health Companion",
+    "slug": "patient-health-companion",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "phc",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": false },
+    "android": { "adaptiveIcon": { "backgroundColor": "#ffffff" } },
+    "plugins": [
+      "expo-router",
+      ["expo-notifications", { "icon": "./assets/notification-icon.png" }]
+    ]
+  }
+}
