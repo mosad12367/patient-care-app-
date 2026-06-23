@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "jsx": "preserve",
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["src", "middleware.ts", "next.config.ts"]
+}
