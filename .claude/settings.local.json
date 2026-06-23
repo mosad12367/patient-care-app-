@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git log *)",
+      "Bash(cat \".superpowers/sdd/progress.md\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\\\\.superpowers\\\\sdd\" && ls \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\" 2>/dev/null || echo \"NO_SCRIPTS\")"
+    ]
+  }
+}
