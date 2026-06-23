@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd * && bash */scripts/review-package *)",
+      "Bash(bash */scripts/review-package *)",
+      "Bash(cd * && bash */scripts/task-brief *)",
+      "Bash(bash */scripts/task-brief *)",
+      "Bash(cd * && git merge-base *)",
+      "PowerShell(cd *; git log *)",
+      "PowerShell(& \"*/pnpm.ps1\" install *)",
+      "PowerShell(cd *; & \"*/pnpm.ps1\" install *)",
+      "PowerShell(cd *; node_modules/.bin/jest *)"
+    ]
+  }
+}

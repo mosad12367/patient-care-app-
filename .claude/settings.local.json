@@ -3,7 +3,32 @@
     "allow": [
       "Bash(git log *)",
       "Bash(cat \".superpowers/sdd/progress.md\")",
-      "Bash(mkdir -p \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\\\\.superpowers\\\\sdd\" && ls \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\" 2>/dev/null || echo \"NO_SCRIPTS\")"
+      "Bash(mkdir -p \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\\\\.superpowers\\\\sdd\" && ls \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\" 2>/dev/null || echo \"NO_SCRIPTS\")",
+      "Bash(Get-ChildItem -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\\\\packages\\\\shared\\\\src\" -Force)",
+      "Bash(pnpm install *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "PowerShell(cd \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\\\\packages\\\\shared\"; Get-ChildItem -Path dist | ForEach-Object { \"{0} \\({1} bytes\\)\" -f $_.Name, $_.Length })",
+      "Bash(ls -la '/mnt/c/Users/Intern/Documents/patientHealthCare/packages/shared/dist/' 2>/dev/null || echo \"Checking if dist exists...\")",
+      "Bash(npm -v)",
+      "Bash(npm install *)",
+      "Bash(npm exec *)",
+      "Bash(\"/c/Users/Intern/Documents/patientHealthCare/apps/api/node_modules/.bin/jest\")",
+      "Bash(\"/c/Users/Intern/AppData/Roaming/npm/pnpm\" --version)",
+      "Bash(\"/c/Users/Intern/AppData/Roaming/npm/pnpm\" --filter @phc/api add -D @types/jest)",
+      "PowerShell($pnpmPath = \\(Get-Command pnpm\\).Source 2>$null; if \\($null -eq $pnpmPath\\) { $pnpmPath = \"C:\\\\Users\\\\Intern\\\\AppData\\\\Roaming\\\\npm\\\\pnpm\" }; Write-Host \"pnpm path: $pnpmPath\"; cd \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\"; & $pnpmPath install)",
+      "Bash(cd \"/c/Users/Intern/Documents/patientHealthCare\" && find . -name \"*.json\" -path \"*\\\\.pnpm*\" 2>/dev/null | head -10)",
+      "Read(//c/Users/Intern/**)",
+      "Bash(ls -la /c/Users/Intern/.pnpm*)",
+      "Bash(ls -la /c/Users/Intern/AppData/Local/pnpm*)",
+      "Bash(bash \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\\\\task-brief\" docs/superpowers/plans/2026-06-23-plan-1-foundation.md 6)",
+      "Bash(node_modules/.bin/jest --no-coverage)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Intern\\\\Documents\\\\patientHealthCare\\\\apps\\\\api\\\\src\\\\app\\\\api\\\\invites\\\\[token]\")",
+      "Bash(git init *)",
+      "Bash(bash \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\\\\review-package\" 1c8288c 0f334ef)",
+      "Bash(bash \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\\\\review-package\" 0f334ef 1388388)",
+      "Bash(bash \"C:\\\\Users\\\\Intern\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\6.0.3\\\\skills\\\\subagent-driven-development\\\\scripts\\\\review-package\" ab4177c HEAD)"
     ]
   }
 }
