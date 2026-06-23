@@ -15,11 +15,13 @@ export interface User {
 export interface Relationship {
   id: string
   elderly_user_id: string
-  connected_user_id: string
+  connected_user_id: string | null
+  invitee_email: string | null
   role: RelationshipRole
   status: RelationshipStatus
   invite_token: string | null
   invite_expires_at: string | null
+  created_at: string
 }
 
 export interface Medication {

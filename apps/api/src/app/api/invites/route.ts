@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
-  const { user, error } = await requireAuth(request)
+  const { user, error } = await requireAuth()
   if (error) return error
 
   const supabase = createSupabaseServerClient()
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { user, error } = await requireAuth(request)
+  const { user, error } = await requireAuth()
   if (error) return error
 
   if (user.role !== 'elderly') {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const { user, error } = await requireAuth(request)
+  const { user, error } = await requireAuth()
   if (error) return error
 
   const body = await request.json()
@@ -66,12 +66,14 @@ export async function DELETE(request: NextRequest) {
   const { relationship_id } = body
   const supabase = createSupabaseServerClient()
 
-  const { error: dbError } = await supabase
+  const { data, error: dbError } = await supabase
     .from('relationships')
     .delete()
     .eq('id', relationship_id)
     .eq('elderly_user_id', user.id)
+    .select()
 
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+  if (!data || data.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ success: true })
 }

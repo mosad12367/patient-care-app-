@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { RegisterSchema } from '@phc/shared'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase-server'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
   })
 
   if (profileError) {
+    const admin = createSupabaseAdminClient()
+    await admin.auth.admin.deleteUser(authData.user.id)
     return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 })
   }
 

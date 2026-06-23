@@ -1,8 +1,8 @@
 import { createSupabaseServerClient } from './supabase-server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import type { User } from '@phc/shared'
 
-export async function requireAuth(request: NextRequest): Promise<
+export async function requireAuth(): Promise<
   { user: User; error: null } | { user: null; error: NextResponse }
 > {
   const supabase = createSupabaseServerClient()
