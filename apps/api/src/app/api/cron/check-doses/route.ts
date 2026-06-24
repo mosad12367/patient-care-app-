@@ -18,14 +18,15 @@ export async function GET(request: NextRequest) {
   const { data: pendingDoses, error } = await supabase
     .from('dose_logs')
     .select(`
-      id, scheduled_at, sms_sent,
+      id, scheduled_at, sms_sent, push_sent,
       medication_schedule:medication_schedules(
         medication:medications(
           name,
           elderly_user:users!medications_elderly_user_id_fkey(id, name, phone),
           caregiver_relationships:relationships(
             connected_user:users!relationships_connected_user_id_fkey(id),
-            status
+            status,
+            role
           )
         )
       )
@@ -47,12 +48,16 @@ export async function GET(request: NextRequest) {
       const msSinceScheduled = now.getTime() - new Date(dose.scheduled_at).getTime()
       const medicationName = med.name
 
-      await sendPushNotification(
-        elderlyUser.id,
-        'Medication Reminder',
-        `Time to take your ${medicationName}. Tap to confirm.`,
-        { dose_id: dose.id, screen: 'medicines' }
-      )
+      // Only send initial push once
+      if (!dose.push_sent) {
+        await sendPushNotification(
+          elderlyUser.id,
+          'Medication Reminder',
+          `Time to take your ${medicationName}. Tap to confirm.`,
+          { dose_id: dose.id, screen: 'medicines' }
+        )
+        await supabase.from('dose_logs').update({ push_sent: true }).eq('id', dose.id)
+      }
 
       if (msSinceScheduled > THIRTY_MIN_MS && !dose.sms_sent && elderlyUser.phone) {
         await sendSms(
@@ -65,7 +70,7 @@ export async function GET(request: NextRequest) {
       if (msSinceScheduled > SIXTY_MIN_MS) {
         const caregiverRelationships = med.caregiver_relationships ?? []
         for (const rel of caregiverRelationships) {
-          if (!rel.connected_user || rel.status !== 'accepted') continue
+          if (!rel.connected_user || rel.status !== 'accepted' || rel.role !== 'caregiver') continue
           await sendPushNotification(
             rel.connected_user.id,
             'Missed Dose Alert',

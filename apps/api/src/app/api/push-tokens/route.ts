@@ -16,10 +16,13 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createSupabaseServerClient()
-  await supabase.from('push_tokens').upsert(
+  const { error: dbError } = await supabase.from('push_tokens').upsert(
     { user_id: user.id, token: parsed.data.token },
     { onConflict: 'user_id,token' }
   )
+  if (dbError) {
+    return NextResponse.json({ error: 'Failed to register token' }, { status: 500 })
+  }
 
   return NextResponse.json({ success: true })
 }

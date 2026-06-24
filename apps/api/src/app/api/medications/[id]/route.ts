@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { UpdateMedicationSchema } from '@phc/shared'
 import { requireAuth } from '@/lib/auth'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { hasAccessToPatient } from '@/lib/relationships'
 
 export async function PATCH(
   request: NextRequest,
@@ -15,13 +16,29 @@ export async function PATCH(
   }
 
   const { id } = await params
+  const supabase = createSupabaseServerClient()
+
+  const { data: medication } = await supabase
+    .from('medications')
+    .select('elderly_user_id')
+    .eq('id', id)
+    .single()
+
+  if (!medication) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  const allowed = await hasAccessToPatient(user.id, user.role, medication.elderly_user_id)
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const body = await request.json()
   const parsed = UpdateMedicationSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const supabase = createSupabaseServerClient()
   const { data, error: dbError } = await supabase
     .from('medications')
     .update(parsed.data)
@@ -46,6 +63,22 @@ export async function DELETE(
 
   const { id } = await params
   const supabase = createSupabaseServerClient()
+
+  const { data: medication } = await supabase
+    .from('medications')
+    .select('elderly_user_id')
+    .eq('id', id)
+    .single()
+
+  if (!medication) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  const allowed = await hasAccessToPatient(user.id, user.role, medication.elderly_user_id)
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { error: dbError } = await supabase
     .from('medications')
     .delete()
