@@ -48,3 +48,24 @@ export const AcknowledgeDoseSchema = z.object({
 
 export type CreateScheduleInput = z.infer<typeof CreateScheduleSchema>
 export type AcknowledgeDoseInput = z.infer<typeof AcknowledgeDoseSchema>
+
+export const PREDEFINED_SYMPTOMS = [
+  'Headache',
+  'Dizziness',
+  'Nausea',
+  'Fatigue',
+  'Chest Pain',
+  'Shortness of Breath',
+  'Pain',
+  'Confusion',
+  'Other',
+] as const
+
+export const CreateSymptomLogSchema = z.object({
+  symptoms: z.array(z.string().min(1)).min(1),
+  severity: z.number().int().min(1).max(5),
+  voice_note_url: z.string().url().nullable().optional(),
+  text_note: z.string().nullable().optional(),
+})
+
+export type CreateSymptomLogInput = z.infer<typeof CreateSymptomLogSchema>
