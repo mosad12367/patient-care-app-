@@ -8,7 +8,7 @@ const SIXTY_MIN_MS = 60 * 60 * 1000
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
           name,
           elderly_user:users!medications_elderly_user_id_fkey(id, name, phone),
           caregiver_relationships:relationships(
-            connected_user:users!relationships_connected_user_id_fkey(id)
+            connected_user:users!relationships_connected_user_id_fkey(id),
+            status
           )
         )
       )
@@ -38,39 +39,43 @@ export async function GET(request: NextRequest) {
   }
 
   for (const dose of pendingDoses ?? []) {
-    const med = dose.medication_schedule?.medication
-    if (!med) continue
+    try {
+      const med = dose.medication_schedule?.medication
+      if (!med) continue
 
-    const elderlyUser = med.elderly_user
-    const msSinceScheduled = now.getTime() - new Date(dose.scheduled_at).getTime()
-    const medicationName = med.name
+      const elderlyUser = med.elderly_user
+      const msSinceScheduled = now.getTime() - new Date(dose.scheduled_at).getTime()
+      const medicationName = med.name
 
-    await sendPushNotification(
-      elderlyUser.id,
-      'Medication Reminder',
-      `Time to take your ${medicationName}. Tap to confirm.`,
-      { dose_id: dose.id, screen: 'medicines' }
-    )
-
-    if (msSinceScheduled > THIRTY_MIN_MS && !dose.sms_sent && elderlyUser.phone) {
-      await sendSms(
-        elderlyUser.phone,
-        `Reminder: Please take your ${medicationName}. Open the Health Companion app to confirm.`
+      await sendPushNotification(
+        elderlyUser.id,
+        'Medication Reminder',
+        `Time to take your ${medicationName}. Tap to confirm.`,
+        { dose_id: dose.id, screen: 'medicines' }
       )
-      await supabase.from('dose_logs').update({ sms_sent: true }).eq('id', dose.id)
-    }
 
-    if (msSinceScheduled > SIXTY_MIN_MS) {
-      const caregiverRelationships = med.caregiver_relationships ?? []
-      for (const rel of caregiverRelationships) {
-        if (!rel.connected_user) continue
-        await sendPushNotification(
-          rel.connected_user.id,
-          'Missed Dose Alert',
-          `${elderlyUser.name} has not taken their ${medicationName}.`,
-          { elderly_user_id: elderlyUser.id, screen: 'dashboard' }
+      if (msSinceScheduled > THIRTY_MIN_MS && !dose.sms_sent && elderlyUser.phone) {
+        await sendSms(
+          elderlyUser.phone,
+          `Reminder: Please take your ${medicationName}. Open the Health Companion app to confirm.`
         )
+        await supabase.from('dose_logs').update({ sms_sent: true }).eq('id', dose.id)
       }
+
+      if (msSinceScheduled > SIXTY_MIN_MS) {
+        const caregiverRelationships = med.caregiver_relationships ?? []
+        for (const rel of caregiverRelationships) {
+          if (!rel.connected_user || rel.status !== 'accepted') continue
+          await sendPushNotification(
+            rel.connected_user.id,
+            'Missed Dose Alert',
+            `${elderlyUser.name} has not taken their ${medicationName}.`,
+            { elderly_user_id: elderlyUser.id, screen: 'dashboard' }
+          )
+        }
+      }
+    } catch (doseError) {
+      console.error(`Failed to process dose ${dose.id}:`, doseError)
     }
   }
 
