@@ -70,7 +70,7 @@ export default function SymptomsScreen() {
 
           <SeverityPicker value={severity} onChange={setSeverity} />
 
-          {!showTextInput && (
+          {!showTextInput && selected.length === 0 && (
             <BigButton
               label="Describe Symptom"
               icon="🎙️"

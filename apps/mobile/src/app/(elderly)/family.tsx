@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, Alert, TextInput } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Alert, TextInput, TouchableOpacity } from 'react-native'
 import { api } from '@/lib/api'
 import { BigButton } from '@/components/BigButton'
 import { ConfirmModal } from '@/components/ConfirmModal'
@@ -92,14 +92,18 @@ export default function FamilyScreen() {
             />
             <View style={styles.roleRow}>
               {(['caregiver', 'doctor'] as const).map((r) => (
-                <BigButton
+                <TouchableOpacity
                   key={r}
-                  label={r === 'caregiver' ? 'Family Caregiver' : 'Doctor'}
-                  icon={r === 'caregiver' ? '👨‍👩‍👧' : '🩺'}
+                  style={[styles.roleToggle, inviteRole === r && styles.roleToggleSelected]}
                   onPress={() => setInviteRole(r)}
-                  variant={inviteRole === r ? 'primary' : 'secondary'}
-                  style={styles.roleBtn}
-                />
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: inviteRole === r }}
+                  accessibilityLabel={r === 'caregiver' ? 'Family Caregiver' : 'Doctor'}
+                >
+                  <Text style={[styles.roleToggleText, inviteRole === r && styles.roleToggleTextSelected]}>
+                    {r === 'caregiver' ? '👨‍👩‍👧 Caregiver' : '🩺 Doctor'}
+                  </Text>
+                </TouchableOpacity>
               ))}
             </View>
             <BigButton label="Send Invite" icon="📧" onPress={() => setShowConfirmInvite(true)} style={styles.sendBtn} />
@@ -131,7 +135,10 @@ const styles = StyleSheet.create({
   formLabel: { fontSize: 20, fontWeight: '600', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 16, fontSize: 20, marginBottom: 14 },
   roleRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  roleBtn: { flex: 1 },
+  roleToggle: { flex: 1, borderWidth: 2, borderColor: '#e2e8f0', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 12, alignItems: 'center', minHeight: 52 },
+  roleToggleSelected: { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
+  roleToggleText: { fontSize: 20, color: '#334155', fontWeight: '500' },
+  roleToggleTextSelected: { color: '#2563eb', fontWeight: '700' },
   sendBtn: { marginBottom: 8 },
   addBtn: { marginTop: 12 },
 })

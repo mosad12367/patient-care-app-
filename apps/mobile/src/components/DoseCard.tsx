@@ -9,15 +9,27 @@ interface Props {
   status: DoseLog['status']
   onTaken: () => void
   onMissed: () => void
+  /** When false and status is pending, renders a view-only card without action buttons. Defaults to true. */
+  showActions?: boolean
 }
 
-export function DoseCard({ medicationName, dosage, scheduledTime, status, onTaken, onMissed }: Props) {
+export function DoseCard({ medicationName, dosage, scheduledTime, status, onTaken, onMissed, showActions = true }: Props) {
   if (status !== 'pending') {
     return (
       <View style={[styles.card, status === 'taken' ? styles.taken : styles.missed]}>
         <Text style={styles.name}>{medicationName}</Text>
         <Text style={styles.detail}>{dosage} · {scheduledTime}</Text>
         <Text style={styles.statusText}>{status === 'taken' ? '✓ Taken' : '✗ Skipped'}</Text>
+      </View>
+    )
+  }
+
+  if (!showActions) {
+    return (
+      <View style={[styles.card, styles.pendingReadOnly]}>
+        <Text style={styles.name}>{medicationName}</Text>
+        <Text style={styles.detail}>{dosage} · {scheduledTime}</Text>
+        <Text style={styles.waitingText}>⏳ Waiting</Text>
       </View>
     )
   }
@@ -41,6 +53,8 @@ const styles = StyleSheet.create({
   name: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
   detail: { fontSize: 20, color: '#555', marginBottom: 16 },
   statusText: { fontSize: 20, fontWeight: '600' },
+  pendingReadOnly: { borderLeftWidth: 6, borderLeftColor: '#94a3b8' },
+  waitingText: { fontSize: 20, fontWeight: '600', color: '#64748b' },
   actions: { flexDirection: 'row', gap: 12 },
   actionBtn: { flex: 1 },
 })

@@ -41,17 +41,26 @@ export default function MedicinesScreen() {
         {doses.length === 0 ? (
           <Text style={styles.empty}>No medications scheduled for today.</Text>
         ) : (
-          doses.map((dose) => (
-            <DoseCard
-              key={dose.id}
-              medicationName={dose.medication_schedule.medication.name}
-              dosage={dose.medication_schedule.medication.dosage}
-              scheduledTime={dose.medication_schedule.scheduled_time}
-              status={dose.status}
-              onTaken={() => setConfirm({ id: dose.id, status: 'taken', message: `Did you take your ${dose.medication_schedule.medication.name}?` })}
-              onMissed={() => setConfirm({ id: dose.id, status: 'missed', message: `Skip your ${dose.medication_schedule.medication.name}?` })}
-            />
-          ))
+          (() => {
+            let firstPendingShown = false
+            return doses.map((dose) => {
+              const isPending = dose.status === 'pending'
+              const showActions = isPending && !firstPendingShown
+              if (isPending) firstPendingShown = true
+              return (
+                <DoseCard
+                  key={dose.id}
+                  medicationName={dose.medication_schedule.medication.name}
+                  dosage={dose.medication_schedule.medication.dosage}
+                  scheduledTime={dose.medication_schedule.scheduled_time}
+                  status={dose.status}
+                  showActions={showActions}
+                  onTaken={() => setConfirm({ id: dose.id, status: 'taken', message: `Did you take your ${dose.medication_schedule.medication.name}?` })}
+                  onMissed={() => setConfirm({ id: dose.id, status: 'missed', message: `Skip your ${dose.medication_schedule.medication.name}?` })}
+                />
+              )
+            })
+          })()
         )}
       </ScrollView>
       {confirm && (

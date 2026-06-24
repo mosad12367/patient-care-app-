@@ -66,13 +66,15 @@ export default function ElderlyHomeScreen() {
           </View>
         )}
 
-        <BigButton
-          label="Log Symptom"
-          icon="🎙️"
-          onPress={() => router.push('/(elderly)/symptoms')}
-          variant="secondary"
-          style={styles.logBtn}
-        />
+        {doses.length === 0 && (
+          <BigButton
+            label="Log Symptom"
+            icon="🎙️"
+            onPress={() => router.push('/(elderly)/symptoms')}
+            variant="secondary"
+            style={styles.logBtn}
+          />
+        )}
       </ScrollView>
 
       {/* Emergency call button — always visible at bottom */}
