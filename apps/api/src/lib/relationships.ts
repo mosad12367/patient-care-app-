@@ -13,6 +13,7 @@ export async function hasAccessToPatient(
     .eq('elderly_user_id', elderlyUserId)
     .eq('connected_user_id', callerId)
     .eq('status', 'accepted')
+    .eq('role', 'caregiver')   // only caregiver relationships grant mutation access
     .single()
   return data !== null
 }

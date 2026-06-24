@@ -23,6 +23,26 @@ export async function PATCH(
 
   const supabase = createSupabaseServerClient()
 
+  // Verify this dose belongs to the authenticated elderly user
+  const { data: existing } = await supabase
+    .from('dose_logs')
+    .select(`
+      id,
+      medication_schedule:medication_schedules!inner(
+        medication:medications!inner(elderly_user_id)
+      )
+    `)
+    .eq('id', id)
+    .single()
+
+  if (!existing) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  if (existing.medication_schedule?.medication?.elderly_user_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { data, error: dbError } = await supabase
     .from('dose_logs')
     .update({
