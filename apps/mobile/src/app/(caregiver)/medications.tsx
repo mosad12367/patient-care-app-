@@ -54,8 +54,12 @@ export default function CaregiverMedicationsScreen() {
     Alert.alert('Delete medication?', 'This will remove it and all future reminders.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
-        await api.del(`/api/medications/${id}`)
-        loadMeds()
+        try {
+          await api.del(`/api/medications/${id}`)
+          loadMeds()
+        } catch {
+          Alert.alert('Could not delete medication. Please try again.')
+        }
       }},
     ])
   }
@@ -70,7 +74,11 @@ export default function CaregiverMedicationsScreen() {
               <Text style={styles.medName}>{m.name}</Text>
               <Text style={styles.medDetail}>{m.dosage} · {m.frequency}</Text>
             </View>
-            <TouchableOpacity onPress={() => deleteMedication(m.id)}>
+            <TouchableOpacity
+              onPress={() => deleteMedication(m.id)}
+              style={styles.deleteTouch}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <Text style={styles.deleteBtn}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -105,6 +113,7 @@ const styles = StyleSheet.create({
   cardInfo: { flex: 1 },
   medName: { fontSize: 18, fontWeight: '700' },
   medDetail: { fontSize: 14, color: '#64748b', marginTop: 2 },
+  deleteTouch: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 12 },
   deleteBtn: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
   form: { backgroundColor: '#fff', borderRadius: 14, padding: 18, marginBottom: 12 },
   input: { borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 12 },

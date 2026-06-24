@@ -6,6 +6,7 @@ import type { DoseLog } from '@phc/shared'
 export default function AlertsScreen() {
   const [missedDoses, setMissedDoses] = useState<DoseLog[]>([])
   const [patterns, setPatterns] = useState<Array<{ type: string; message: string }>>([])
+  const [error, setError] = useState(false)
 
   useEffect(() => { loadAlerts() }, [])
 
@@ -17,7 +18,9 @@ export default function AlertsScreen() {
       ])
       setMissedDoses(dosesRes.doses.filter((d) => d.status === 'missed'))
       setPatterns(patternsRes.patterns)
-    } catch { /* silent */ }
+    } catch {
+      setError(true)
+    }
   }
 
   const hasAlerts = missedDoses.length > 0 || patterns.length > 0
@@ -26,7 +29,13 @@ export default function AlertsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Alerts</Text>
 
-      {!hasAlerts && (
+      {error && (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>Could not load alerts. Check your connection.</Text>
+        </View>
+      )}
+
+      {!error && !hasAlerts && (
         <View style={styles.allGood}>
           <Text style={styles.allGoodText}>✓ No alerts. Everything looks good.</Text>
         </View>
@@ -62,4 +71,6 @@ const styles = StyleSheet.create({
   alertRed: { backgroundColor: '#fee2e2' },
   alertType: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4, color: '#475569' },
   alertMessage: { fontSize: 16, color: '#1e293b' },
+  errorCard: { backgroundColor: '#fee2e2', borderRadius: 12, padding: 16, marginBottom: 10 },
+  errorText: { fontSize: 16, color: '#dc2626' },
 })
