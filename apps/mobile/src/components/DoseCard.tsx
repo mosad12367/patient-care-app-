@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
   taken: { borderLeftWidth: 6, borderLeftColor: '#16a34a' },
   missed: { borderLeftWidth: 6, borderLeftColor: '#dc2626' },
   name: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
-  detail: { fontSize: 18, color: '#555', marginBottom: 16 },
-  statusText: { fontSize: 18, fontWeight: '600' },
+  detail: { fontSize: 20, color: '#555', marginBottom: 16 },
+  statusText: { fontSize: 20, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: 12 },
   actionBtn: { flex: 1 },
 })

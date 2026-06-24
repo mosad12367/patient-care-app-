@@ -17,8 +17,8 @@ export function SymptomChip({ label, selected, onToggle }: Props) {
 }
 
 const styles = StyleSheet.create({
-  chip: { paddingVertical: 14, paddingHorizontal: 18, borderRadius: 12, borderWidth: 2, borderColor: '#e2e8f0', margin: 5 },
+  chip: { paddingVertical: 14, paddingHorizontal: 18, borderRadius: 12, borderWidth: 2, borderColor: '#e2e8f0', margin: 5, minHeight: 52 },
   chipSelected: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  text: { fontSize: 18, color: '#333' },
+  text: { fontSize: 20, color: '#333' },
   textSelected: { color: '#fff', fontWeight: '600' },
 })

@@ -12,7 +12,7 @@ export function ConfirmModal({ visible, message, onConfirm, onCancel }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
-        <View style={styles.box}>
+        <View style={styles.box} accessibilityViewIsModal={true}>
           <Text style={styles.message}>{message}</Text>
           <View style={styles.actions}>
             <BigButton label="Yes" icon="✓" onPress={onConfirm} variant="primary" style={styles.btn} />
