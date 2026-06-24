@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@phc/shared": "workspace:*",
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.43.0",
     "next": "^15.0.0",
