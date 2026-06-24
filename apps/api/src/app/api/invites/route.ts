@@ -9,14 +9,18 @@ export async function GET(request: NextRequest) {
   if (error) return error
 
   const supabase = createSupabaseServerClient()
-  const { data, error: dbError } = await supabase
-    .from('relationships')
-    .select(`
-      *,
-      connected_user:users!relationships_connected_user_id_fkey(id, name, email, role)
-    `)
-    .eq('elderly_user_id', user.id)
 
+  const query = user.role === 'elderly'
+    ? supabase
+        .from('relationships')
+        .select('*, connected_user:users!relationships_connected_user_id_fkey(id, name, email, role)')
+        .eq('elderly_user_id', user.id)
+    : supabase
+        .from('relationships')
+        .select('*, elderly_user:users!relationships_elderly_user_id_fkey(id, name, email, role)')
+        .eq('connected_user_id', user.id)
+
+  const { data, error: dbError } = await query
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
   return NextResponse.json({ relationships: data })
 }
