@@ -12,9 +12,11 @@
     "@phc/shared": "workspace:*",
     "@supabase/supabase-js": "^2.43.0",
     "expo": "~52.0.0",
+    "expo-file-system": "^56.0.8",
+    "expo-notifications": "~0.29.0",
     "expo-router": "~4.0.0",
     "expo-secure-store": "~14.0.0",
-    "expo-notifications": "~0.29.0",
+    "expo-sharing": "^56.0.18",
     "expo-speech": "~13.0.0",
     "react": "18.3.1",
     "react-native": "0.76.0"
