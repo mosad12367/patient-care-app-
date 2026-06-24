@@ -35,3 +35,16 @@ export const UpdateMedicationSchema = CreateMedicationSchema.partial().omit({ el
 
 export type CreateMedicationInput = z.infer<typeof CreateMedicationSchema>
 export type UpdateMedicationInput = z.infer<typeof UpdateMedicationSchema>
+
+export const CreateScheduleSchema = z.object({
+  medication_id: z.string().uuid(),
+  scheduled_time: z.string().regex(/^\d{2}:\d{2}$/),
+  days_of_week: z.array(z.number().min(0).max(6)).min(1),
+})
+
+export const AcknowledgeDoseSchema = z.object({
+  status: z.enum(['taken', 'missed']),
+})
+
+export type CreateScheduleInput = z.infer<typeof CreateScheduleSchema>
+export type AcknowledgeDoseInput = z.infer<typeof AcknowledgeDoseSchema>
