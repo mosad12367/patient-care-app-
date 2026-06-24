@@ -34,9 +34,14 @@ export default function ElderlyHomeScreen() {
   }, [])
 
   async function acknowledgeDose(id: string, status: 'taken' | 'missed') {
-    await api.patch(`/api/doses/${id}`, { status })
-    setDoses((prev) => prev.filter((d) => d.id !== id))
-    setConfirm(null)
+    try {
+      await api.patch(`/api/doses/${id}`, { status })
+      setDoses((prev) => prev.filter((d) => d.id !== id))
+    } catch {
+      Alert.alert('Could not update dose. Please try again.')
+    } finally {
+      setConfirm(null)
+    }
   }
 
   const hour = new Date().getHours()

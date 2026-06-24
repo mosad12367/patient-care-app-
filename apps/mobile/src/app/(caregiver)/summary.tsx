@@ -3,11 +3,17 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } fr
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 import { supabase } from '@/lib/supabase'
+import { useElderlyUserId } from '@/hooks/useElderlyUserId'
 
 export default function SummaryScreen() {
+  const elderlyUserId = useElderlyUserId()
   const [loading, setLoading] = useState(false)
 
   async function downloadAndSharePdf() {
+    if (!elderlyUserId) {
+      Alert.alert('No connected patient found.')
+      return
+    }
     setLoading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -15,7 +21,7 @@ export default function SummaryScreen() {
 
       const path = `${FileSystem.cacheDirectory}health-summary.pdf`
       const result = await FileSystem.downloadAsync(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/summary`,
+        `${process.env.EXPO_PUBLIC_API_URL}/api/summary?elderly_user_id=${elderlyUserId}`,
         path,
         { headers: { Authorization: `Bearer ${session.access_token}` } }
       )

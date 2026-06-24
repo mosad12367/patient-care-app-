@@ -6,7 +6,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  const { user, error } = await requireAuth(request)
+  const { user, error } = await requireAuth()
   if (error) return error
 
   const { token } = await params

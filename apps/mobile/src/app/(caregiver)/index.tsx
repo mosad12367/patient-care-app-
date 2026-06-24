@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native'
 import { api } from '@/lib/api'
+import { useElderlyUserId } from '@/hooks/useElderlyUserId'
 import type { DoseLog, SymptomLog } from '@phc/shared'
 
 export default function CaregiverDashboard() {
+  const elderlyUserId = useElderlyUserId()
   const [doses, setDoses] = useState<DoseLog[]>([])
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([])
   const [patterns, setPatterns] = useState<Array<{ type: string; message: string }>>([])
 
-  useEffect(() => { loadAll() }, [])
+  useEffect(() => { if (elderlyUserId) loadAll() }, [elderlyUserId])
 
   async function loadAll() {
     try {
       const [dosesRes, symptomsRes, patternsRes] = await Promise.all([
-        api.get<{ doses: DoseLog[] }>('/api/doses'),
-        api.get<{ symptoms: SymptomLog[] }>('/api/symptoms?limit=5'),
-        api.get<{ patterns: Array<{ type: string; message: string }> }>('/api/symptoms/patterns'),
+        api.get<{ doses: DoseLog[] }>(`/api/doses?elderly_user_id=${elderlyUserId}`),
+        api.get<{ symptoms: SymptomLog[] }>(`/api/symptoms?elderly_user_id=${elderlyUserId}&limit=5`),
+        api.get<{ patterns: Array<{ type: string; message: string }> }>(`/api/symptoms/patterns?elderly_user_id=${elderlyUserId}`),
       ])
       setDoses(dosesRes.doses)
       setRecentSymptoms(symptomsRes.symptoms)

@@ -17,10 +17,10 @@ export default function CaregiverMedicationsScreen() {
     try {
       const [medsRes, relRes] = await Promise.all([
         api.get<{ medications: Medication[] }>('/api/medications'),
-        api.get<{ relationships: Array<{ elderly_user_id: string; role: string; status: string }> }>('/api/relationships'),
+        api.get<{ relationships: Array<{ elderly_user_id: string; role: string; status: string }> }>('/api/invites'),
       ])
       setMedications(medsRes.medications)
-      const accepted = relRes.relationships.find((r) => r.status === 'accepted')
+      const accepted = relRes.relationships.find((r) => r.status === 'accepted' && r.role === 'caregiver')
       if (accepted) setElderlyUserId(accepted.elderly_user_id)
     } catch { /* silent */ }
   }

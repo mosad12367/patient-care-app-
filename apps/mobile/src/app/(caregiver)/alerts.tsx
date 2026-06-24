@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { api } from '@/lib/api'
+import { useElderlyUserId } from '@/hooks/useElderlyUserId'
 import type { DoseLog } from '@phc/shared'
 
 export default function AlertsScreen() {
+  const elderlyUserId = useElderlyUserId()
   const [missedDoses, setMissedDoses] = useState<DoseLog[]>([])
   const [patterns, setPatterns] = useState<Array<{ type: string; message: string }>>([])
   const [error, setError] = useState(false)
 
-  useEffect(() => { loadAlerts() }, [])
+  useEffect(() => { if (elderlyUserId) loadAlerts() }, [elderlyUserId])
 
   async function loadAlerts() {
     try {
       const [dosesRes, patternsRes] = await Promise.all([
-        api.get<{ doses: DoseLog[] }>('/api/doses'),
-        api.get<{ patterns: Array<{ type: string; message: string }> }>('/api/symptoms/patterns'),
+        api.get<{ doses: DoseLog[] }>(`/api/doses?elderly_user_id=${elderlyUserId}`),
+        api.get<{ patterns: Array<{ type: string; message: string }> }>(`/api/symptoms/patterns?elderly_user_id=${elderlyUserId}`),
       ])
       setMissedDoses(dosesRes.doses.filter((d) => d.status === 'missed'))
       setPatterns(patternsRes.patterns)
