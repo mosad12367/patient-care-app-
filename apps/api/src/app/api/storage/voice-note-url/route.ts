@@ -21,9 +21,13 @@ export async function POST(request: NextRequest) {
   if (storageError) return NextResponse.json({ error: storageError.message }, { status: 500 })
 
   // Also generate the public download URL (will be valid after upload completes)
-  const { data: downloadData } = await supabase.storage
+  const { data: downloadData, error: downloadError } = await supabase.storage
     .from('voice-notes')
-    .createSignedUrl(fileName, 60 * 60 * 24 * 365) // 1-year signed download URL
+    .createSignedUrl(fileName, 60 * 60 * 24 * 30) // 30-day signed download URL
+
+  if (downloadError) {
+    console.error('Failed to pre-generate download URL:', downloadError.message)
+  }
 
   return NextResponse.json({
     upload_url: data.signedUrl,
