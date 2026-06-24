@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CreateScheduleSchema } from '@phc/shared'
 import { requireAuth } from '@/lib/auth'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { hasAccessToPatient } from '@/lib/relationships'
 
 export async function POST(request: NextRequest) {
   const { user, error } = await requireAuth()
@@ -18,6 +19,22 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createSupabaseServerClient()
+
+  const { data: medication } = await supabase
+    .from('medications')
+    .select('elderly_user_id')
+    .eq('id', parsed.data.medication_id)
+    .single()
+
+  if (!medication) {
+    return NextResponse.json({ error: 'Medication not found' }, { status: 404 })
+  }
+
+  const allowed = await hasAccessToPatient(user.id, user.role, medication.elderly_user_id)
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { data, error: dbError } = await supabase
     .from('medication_schedules')
     .insert(parsed.data)

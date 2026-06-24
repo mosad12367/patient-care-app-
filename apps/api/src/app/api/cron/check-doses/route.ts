@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
             { elderly_user_id: elderlyUser.id, screen: 'dashboard' }
           )
         }
+        await supabase.from('dose_logs').update({ status: 'missed' }).eq('id', dose.id)
       }
     } catch (doseError) {
       console.error(`Failed to process dose ${dose.id}:`, doseError)
