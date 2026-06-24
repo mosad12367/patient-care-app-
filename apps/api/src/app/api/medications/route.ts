@@ -41,6 +41,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
+  const allowed = await hasAccessToPatient(user.id, user.role, parsed.data.elderly_user_id)
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const supabase = createSupabaseServerClient()
   const { data, error: dbError } = await supabase
     .from('medications')

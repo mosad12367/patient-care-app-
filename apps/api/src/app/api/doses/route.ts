@@ -25,19 +25,18 @@ export async function GET(request: NextRequest) {
     .from('dose_logs')
     .select(`
       *,
-      medication_schedule:medication_schedules(
+      medication_schedule:medication_schedules!inner(
         scheduled_time,
-        medication:medications(name, dosage, elderly_user_id)
+        medication:medications!inner(
+          name, dosage, elderly_user_id
+        )
       )
     `)
     .gte('scheduled_at', todayStart.toISOString())
     .lte('scheduled_at', todayEnd.toISOString())
+    .eq('medication_schedule.medication.elderly_user_id', elderly_user_id)
 
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
 
-  const filtered = (data ?? []).filter(
-    (d) => d.medication_schedule?.medication?.elderly_user_id === elderly_user_id
-  )
-
-  return NextResponse.json({ doses: filtered })
+  return NextResponse.json({ doses: data ?? [] })
 }

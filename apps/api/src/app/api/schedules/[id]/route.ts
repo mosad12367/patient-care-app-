@@ -23,11 +23,11 @@ export async function DELETE(
     .eq('id', id)
     .single()
 
-  if (!schedule) {
+  if (!schedule || !schedule.medication?.elderly_user_id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const allowed = await hasAccessToPatient(user.id, user.role, schedule.medication?.elderly_user_id ?? '')
+  const allowed = await hasAccessToPatient(user.id, user.role, schedule.medication.elderly_user_id)
   if (!allowed) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }

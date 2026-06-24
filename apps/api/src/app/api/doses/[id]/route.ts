@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AcknowledgeDoseSchema } from '@phc/shared'
 import { requireAuth } from '@/lib/auth'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { hasAccessToPatient } from '@/lib/relationships'
 
 export async function PATCH(
   request: NextRequest,
@@ -10,6 +9,10 @@ export async function PATCH(
 ) {
   const { user, error } = await requireAuth()
   if (error) return error
+
+  if (user.role !== 'elderly') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const { id } = await params
   const body = await request.json()
@@ -19,32 +22,6 @@ export async function PATCH(
   }
 
   const supabase = createSupabaseServerClient()
-
-  // Verify ownership
-  const { data: existing } = await supabase
-    .from('dose_logs')
-    .select(`
-      id,
-      medication_schedule:medication_schedules(
-        medication:medications(elderly_user_id)
-      )
-    `)
-    .eq('id', id)
-    .single()
-
-  if (!existing) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  }
-
-  const elderlyUserId = existing.medication_schedule?.medication?.elderly_user_id
-  if (!elderlyUserId) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  }
-
-  const allowed = await hasAccessToPatient(user.id, user.role, elderlyUserId)
-  if (!allowed) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
 
   const { data, error: dbError } = await supabase
     .from('dose_logs')
