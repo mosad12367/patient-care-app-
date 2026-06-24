@@ -14,7 +14,7 @@ export default function LoginScreen() {
     if (!email || !password) return
     setLoading(true)
     try {
-      const { session } = await api.post<{ session: { access_token: string; refresh_token: string } }>(
+      const { session } = await api.postPublic<{ session: { access_token: string; refresh_token: string } }>(
         '/api/auth/login',
         { email, password }
       )

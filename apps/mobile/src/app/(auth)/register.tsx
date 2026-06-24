@@ -25,7 +25,7 @@ export default function RegisterScreen() {
     }
     setLoading(true)
     try {
-      await api.post('/api/auth/register', { name, email, password, phone: phone || null, role })
+      await api.postPublic('/api/auth/register', { name, email, password, phone: phone || null, role })
       Alert.alert('Account created', 'Please sign in.', [
         { text: 'OK', onPress: () => router.replace('/(auth)/login') },
       ])

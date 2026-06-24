@@ -18,9 +18,16 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 async function request<T>(
   method: string,
   path: string,
-  body?: unknown
+  body?: unknown,
+  requiresAuth = true
 ): Promise<T> {
-  const headers = await getAuthHeaders()
+  let headers: Record<string, string> = {}
+  if (requiresAuth) {
+    headers = await getAuthHeaders()
+  } else {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) headers = { Authorization: `Bearer ${session.access_token}` }
+  }
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json', ...headers },
@@ -40,4 +47,5 @@ export const api = {
   post: <T>(path: string, body: unknown) => request<T>('POST', path, body),
   patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, body),
   del: <T>(path: string, body?: unknown) => request<T>('DELETE', path, body),
+  postPublic: <T>(path: string, body: unknown) => request<T>('POST', path, body, false),
 }
