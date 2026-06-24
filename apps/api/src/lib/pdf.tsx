@@ -64,9 +64,6 @@ export function HealthSummaryPdf({ data }: { data: SummaryData }) {
           </>
         )}
 
-        <Text style={{ marginTop: 30, fontSize: 9, color: '#999' }}>
-          This summary is for informational purposes only and does not constitute medical advice.
-        </Text>
       </Page>
     </Document>
   )
