@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, Alert, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Alert, TextInput } from 'react-native'
 import { api } from '@/lib/api'
 import { BigButton } from '@/components/BigButton'
+import { ConfirmModal } from '@/components/ConfirmModal'
 import type { Relationship } from '@phc/shared'
 
 interface RelWithUser extends Relationship {
@@ -13,6 +14,7 @@ export default function FamilyScreen() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'caregiver' | 'doctor'>('caregiver')
   const [showInviteForm, setShowInviteForm] = useState(false)
+  const [showConfirmInvite, setShowConfirmInvite] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -73,9 +75,7 @@ export default function FamilyScreen() {
               <Text style={styles.personName}>{r.connected_user?.name ?? r.invitee_email}</Text>
               <Text style={styles.personRole}>{r.role} · {r.status === 'pending' ? '⏳ Invite pending' : '✓ Connected'}</Text>
             </View>
-            <TouchableOpacity onPress={() => removeConnection(r.id)} accessibilityLabel="Remove connection">
-              <Text style={styles.removeBtn}>Remove</Text>
-            </TouchableOpacity>
+            <BigButton label="Remove" icon="✗" onPress={() => removeConnection(r.id)} variant="danger" style={styles.removeActionBtn} />
           </View>
         ))}
 
@@ -92,24 +92,30 @@ export default function FamilyScreen() {
             />
             <View style={styles.roleRow}>
               {(['caregiver', 'doctor'] as const).map((r) => (
-                <TouchableOpacity
+                <BigButton
                   key={r}
-                  style={[styles.roleBtn, inviteRole === r && styles.roleBtnSelected]}
+                  label={r === 'caregiver' ? 'Family Caregiver' : 'Doctor'}
+                  icon={r === 'caregiver' ? '👨‍👩‍👧' : '🩺'}
                   onPress={() => setInviteRole(r)}
-                >
-                  <Text style={[styles.roleBtnText, inviteRole === r && styles.roleBtnTextSelected]}>
-                    {r === 'caregiver' ? 'Family Caregiver' : 'Doctor'}
-                  </Text>
-                </TouchableOpacity>
+                  variant={inviteRole === r ? 'primary' : 'secondary'}
+                  style={styles.roleBtn}
+                />
               ))}
             </View>
-            <BigButton label="Send Invite" icon="📧" onPress={sendInvite} style={styles.sendBtn} />
+            <BigButton label="Send Invite" icon="📧" onPress={() => setShowConfirmInvite(true)} style={styles.sendBtn} />
             <BigButton label="Cancel" icon="✗" onPress={() => setShowInviteForm(false)} variant="secondary" />
           </View>
         ) : (
           <BigButton label="Add Caregiver or Doctor" icon="+" onPress={() => setShowInviteForm(true)} variant="secondary" style={styles.addBtn} />
         )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={showConfirmInvite}
+        message={`Send invite to ${inviteEmail}?`}
+        onConfirm={() => { setShowConfirmInvite(false); sendInvite() }}
+        onCancel={() => setShowConfirmInvite(false)}
+      />
     </View>
   )
 }
@@ -119,16 +125,13 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', marginBottom: 20, color: '#0f172a' },
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 20, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   personName: { fontSize: 20, fontWeight: '700' },
-  personRole: { fontSize: 16, color: '#64748b', marginTop: 4 },
-  removeBtn: { color: '#dc2626', fontSize: 16, fontWeight: '600' },
+  personRole: { fontSize: 20, color: '#64748b', marginTop: 4 },
+  removeActionBtn: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12 },
   inviteForm: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginTop: 8 },
-  formLabel: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 16, fontSize: 18, marginBottom: 14 },
+  formLabel: { fontSize: 20, fontWeight: '600', marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 16, fontSize: 20, marginBottom: 14 },
   roleRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  roleBtn: { flex: 1, borderWidth: 2, borderColor: '#e2e8f0', borderRadius: 10, padding: 14, alignItems: 'center' },
-  roleBtnSelected: { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
-  roleBtnText: { fontSize: 16, color: '#333' },
-  roleBtnTextSelected: { color: '#2563eb', fontWeight: '600' },
+  roleBtn: { flex: 1 },
   sendBtn: { marginBottom: 8 },
   addBtn: { marginTop: 12 },
 })

@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   scroll: { padding: 24, paddingBottom: 16 },
   greeting: { fontSize: 28, fontWeight: '800', marginBottom: 24, color: '#0f172a' },
-  sectionLabel: { fontSize: 18, fontWeight: '600', color: '#475569', marginBottom: 10 },
+  sectionLabel: { fontSize: 20, fontWeight: '600', color: '#475569', marginBottom: 10 },
   allDone: { backgroundColor: '#dcfce7', borderRadius: 16, padding: 24, alignItems: 'center', marginBottom: 20 },
   allDoneText: { fontSize: 22, color: '#15803d', fontWeight: '700' },
   logBtn: { marginTop: 12 },

@@ -70,13 +70,15 @@ export default function SymptomsScreen() {
 
           <SeverityPicker value={severity} onChange={setSeverity} />
 
-          <BigButton
-            label="Describe Symptom"
-            icon="🎙️"
-            onPress={() => setShowTextInput(true)}
-            variant="secondary"
-            style={styles.voiceBtn}
-          />
+          {!showTextInput && (
+            <BigButton
+              label="Describe Symptom"
+              icon="🎙️"
+              onPress={() => setShowTextInput(true)}
+              variant="secondary"
+              style={styles.voiceBtn}
+            />
+          )}
           {showTextInput && (
             <TextInput
               style={styles.textNoteInput}
@@ -92,7 +94,9 @@ export default function SymptomsScreen() {
             <Text style={styles.notePreview}>Note: {textNote}</Text>
           )}
 
-          <BigButton label="Save" icon="✓" onPress={() => setShowConfirm(true)} style={styles.saveBtn} />
+          {selected.length > 0 && (
+            <BigButton label="Save" icon="✓" onPress={() => setShowConfirm(true)} style={styles.saveBtn} />
+          )}
           <BigButton label="Cancel" icon="✗" onPress={() => setMode('history')} variant="secondary" />
         </ScrollView>
 
@@ -134,12 +138,12 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap' },
   voiceBtn: { marginTop: 8 },
   textNoteInput: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 14, fontSize: 20, marginTop: 8, minHeight: 80 },
-  notePreview: { fontSize: 16, color: '#475569', marginTop: 8, fontStyle: 'italic' },
+  notePreview: { fontSize: 20, color: '#475569', marginTop: 8, fontStyle: 'italic' },
   saveBtn: { marginTop: 16, marginBottom: 8 },
   logBtn: { marginBottom: 20 },
   empty: { fontSize: 20, color: '#64748b', textAlign: 'center', marginTop: 40 },
   historyCard: { backgroundColor: '#fff', borderRadius: 14, padding: 18, marginBottom: 12 },
-  historyDate: { fontSize: 16, color: '#64748b', marginBottom: 4 },
+  historyDate: { fontSize: 20, color: '#64748b', marginBottom: 4 },
   historySymptoms: { fontSize: 20, fontWeight: '600', marginBottom: 6 },
-  historySeverity: { fontSize: 18, color: '#2563eb', letterSpacing: 2 },
+  historySeverity: { fontSize: 20, color: '#2563eb', letterSpacing: 2 },
 })
