@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CreateSymptomLogSchema } from '@phc/shared'
 import { requireAuth } from '@/lib/auth'
+import { hasAccessToPatient } from '@/lib/relationships'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function GET(request: NextRequest) {
@@ -10,6 +11,11 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const elderly_user_id = searchParams.get('elderly_user_id') ?? user.id
   const limit = Math.min(Number(searchParams.get('limit') ?? '50'), 100)
+
+  const allowed = await hasAccessToPatient(user.id, user.role, elderly_user_id)
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const supabase = createSupabaseServerClient()
   const { data, error: dbError } = await supabase
