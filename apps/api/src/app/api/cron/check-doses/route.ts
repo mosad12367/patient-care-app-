@@ -41,10 +41,16 @@ export async function GET(request: NextRequest) {
 
   for (const dose of pendingDoses ?? []) {
     try {
-      const med = dose.medication_schedule?.medication
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const schedData = dose.medication_schedule as any
+      const sched = Array.isArray(schedData) ? schedData[0] : schedData
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const medData = sched?.medication as any
+      const med = Array.isArray(medData) ? medData[0] : medData
       if (!med) continue
 
-      const elderlyUser = med.elderly_user
+      const elderlyUserRaw = med.elderly_user
+      const elderlyUser = Array.isArray(elderlyUserRaw) ? elderlyUserRaw[0] : elderlyUserRaw
       const msSinceScheduled = now.getTime() - new Date(dose.scheduled_at).getTime()
       const medicationName = med.name
 
@@ -70,9 +76,10 @@ export async function GET(request: NextRequest) {
       if (msSinceScheduled > SIXTY_MIN_MS) {
         const caregiverRelationships = med.caregiver_relationships ?? []
         for (const rel of caregiverRelationships) {
-          if (!rel.connected_user || rel.status !== 'accepted' || rel.role !== 'caregiver') continue
+          const connectedUser = Array.isArray(rel.connected_user) ? rel.connected_user[0] : rel.connected_user
+          if (!connectedUser || rel.status !== 'accepted' || rel.role !== 'caregiver') continue
           await sendPushNotification(
-            rel.connected_user.id,
+            connectedUser.id,
             'Missed Dose Alert',
             `${elderlyUser.name} has not taken their ${medicationName}.`,
             { elderly_user_id: elderlyUser.id, screen: 'dashboard' }

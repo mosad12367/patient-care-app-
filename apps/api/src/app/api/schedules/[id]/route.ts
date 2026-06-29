@@ -23,11 +23,14 @@ export async function DELETE(
     .eq('id', id)
     .single()
 
-  if (!schedule || !schedule.medication?.elderly_user_id) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const medData = (schedule?.medication as any)
+  const elderlyUserId = Array.isArray(medData) ? medData[0]?.elderly_user_id : medData?.elderly_user_id
+  if (!schedule || !elderlyUserId) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const allowed = await hasAccessToPatient(user.id, user.role, schedule.medication.elderly_user_id)
+  const allowed = await hasAccessToPatient(user.id, user.role, elderlyUserId)
   if (!allowed) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }

@@ -63,11 +63,11 @@ export async function DELETE(request: NextRequest) {
   const { user, error } = await requireAuth()
   if (error) return error
 
-  const body = await request.json()
+  const body = await request.json() as Record<string, unknown>
   if (!body?.relationship_id || typeof body.relationship_id !== 'string') {
     return NextResponse.json({ error: 'relationship_id is required' }, { status: 400 })
   }
-  const { relationship_id } = body
+  const relationship_id = body.relationship_id as string
   const supabase = createSupabaseServerClient()
 
   const { data, error: dbError } = await supabase

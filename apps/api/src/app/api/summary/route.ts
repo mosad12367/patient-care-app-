@@ -87,7 +87,8 @@ export async function GET(request: NextRequest) {
     patterns,
   }
 
-  const pdfBuffer = await renderToBuffer(React.createElement(HealthSummaryPdf, { data: summaryData }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdfBuffer = await renderToBuffer(React.createElement(HealthSummaryPdf, { data: summaryData }) as any)
 
   return new NextResponse(pdfBuffer, {
     headers: {

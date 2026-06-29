@@ -39,7 +39,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  if (existing.medication_schedule?.medication?.elderly_user_id !== user.id) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const medData = (existing.medication_schedule as any)?.medication
+  const medUserId = Array.isArray(medData) ? medData[0]?.elderly_user_id : medData?.elderly_user_id
+  if (medUserId !== user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
