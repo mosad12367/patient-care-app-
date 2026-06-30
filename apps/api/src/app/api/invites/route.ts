@@ -1,28 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CreateInviteSchema } from '@phc/shared'
 import { requireAuth } from '@/lib/auth'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
   const { user, error } = await requireAuth()
   if (error) return error
 
-  const supabase = createSupabaseServerClient()
+  const admin = createSupabaseAdminClient()
 
-  const query = user.role === 'elderly'
-    ? supabase
-        .from('relationships')
-        .select('*, connected_user:users!relationships_connected_user_id_fkey(id, name, email, role)')
-        .eq('elderly_user_id', user.id)
-    : supabase
-        .from('relationships')
-        .select('*, elderly_user:users!relationships_elderly_user_id_fkey(id, name, email, role)')
-        .eq('connected_user_id', user.id)
+  if (user.role === 'elderly') {
+    const { data, error: dbError } = await admin
+      .from('relationships')
+      .select('*, connected_user:users!relationships_connected_user_id_fkey(id, name, email, role)')
+      .eq('elderly_user_id', user.id)
+    if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+    return NextResponse.json({ relationships: data })
+  }
 
-  const { data, error: dbError } = await query
-  if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
-  return NextResponse.json({ relationships: data })
+  // Caregiver: fetch by connected_user_id OR by invitee_email (covers invites sent before they registered)
+  const [byId, byEmail] = await Promise.all([
+    admin
+      .from('relationships')
+      .select('*, elderly_user:users!relationships_elderly_user_id_fkey(id, name, email, role)')
+      .eq('connected_user_id', user.id),
+    admin
+      .from('relationships')
+      .select('*, elderly_user:users!relationships_elderly_user_id_fkey(id, name, email, role)')
+      .eq('invitee_email', user.email)
+      .is('connected_user_id', null),
+  ])
+
+  const seen = new Set<string>()
+  const combined = [...(byId.data ?? []), ...(byEmail.data ?? [])].filter((r) => {
+    if (seen.has(r.id)) return false
+    seen.add(r.id)
+    return true
+  })
+
+  const query = { data: combined, error: byId.error ?? byEmail.error }
+
+  if (query.error) return NextResponse.json({ error: query.error.message }, { status: 500 })
+  return NextResponse.json({ relationships: query.data })
 }
 
 export async function POST(request: NextRequest) {
@@ -43,20 +63,66 @@ export async function POST(request: NextRequest) {
   const invite_token = randomUUID()
   const invite_expires_at = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
 
-  const supabase = createSupabaseServerClient()
-  const { error: dbError } = await supabase.from('relationships').insert({
+  const admin = createSupabaseAdminClient()
+
+  // Check if the invitee already has an account so we can link them immediately
+  const { data: existingUser } = await admin
+    .from('users')
+    .select('id')
+    .eq('email', invitee_email)
+    .single()
+
+  const { error: dbError } = await admin.from('relationships').insert({
     elderly_user_id: user.id,
     invitee_email,
     role: invitee_role,
     invite_token,
     invite_expires_at,
+    connected_user_id: existingUser?.id ?? null,
   })
 
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
 
-  // In production: send invite_token via email using Supabase's email service or Resend
-  // For MVP: return the token in the response so it can be sent manually / tested
-  return NextResponse.json({ invite_token, expires_at: invite_expires_at }, { status: 201 })
+  return NextResponse.json({ success: true, linked: !!existingUser }, { status: 201 })
+}
+
+export async function PATCH(request: NextRequest) {
+  const { user, error } = await requireAuth()
+  if (error) return error
+
+  const body = await request.json() as Record<string, unknown>
+  const relationship_id = body.relationship_id as string
+  const action = body.action as 'accept' | 'reject'
+
+  if (!relationship_id || !action) {
+    return NextResponse.json({ error: 'relationship_id and action are required' }, { status: 400 })
+  }
+
+  const admin = createSupabaseAdminClient()
+
+  const { data: rel } = await admin
+    .from('relationships')
+    .select('*')
+    .eq('id', relationship_id)
+    .eq('invitee_email', user.email)
+    .eq('status', 'pending')
+    .single()
+
+  if (!rel) return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
+
+  if (action === 'accept') {
+    await admin
+      .from('relationships')
+      .update({ status: 'accepted', connected_user_id: user.id })
+      .eq('id', relationship_id)
+  } else {
+    await admin
+      .from('relationships')
+      .update({ status: 'rejected' })
+      .eq('id', relationship_id)
+  }
+
+  return NextResponse.json({ success: true })
 }
 
 export async function DELETE(request: NextRequest) {
@@ -68,9 +134,9 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'relationship_id is required' }, { status: 400 })
   }
   const relationship_id = body.relationship_id as string
-  const supabase = createSupabaseServerClient()
+  const admin = createSupabaseAdminClient()
 
-  const { data, error: dbError } = await supabase
+  const { data, error: dbError } = await admin
     .from('relationships')
     .delete()
     .eq('id', relationship_id)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, Alert, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Alert, TextInput, TouchableOpacity, Platform } from 'react-native'
 import { api } from '@/lib/api'
 import { BigButton } from '@/components/BigButton'
 import { ConfirmModal } from '@/components/ConfirmModal'
@@ -15,6 +15,8 @@ export default function FamilyScreen() {
   const [inviteRole, setInviteRole] = useState<'caregiver' | 'doctor'>('caregiver')
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [showConfirmInvite, setShowConfirmInvite] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -28,46 +30,57 @@ export default function FamilyScreen() {
 
   async function sendInvite() {
     if (!inviteEmail) return
+    setInviteError(null)
+    setInviteSuccess(null)
     try {
-      await api.post('/api/invites', { invitee_email: inviteEmail, invitee_role: inviteRole })
-      Alert.alert('Invite sent!', `An invite has been sent to ${inviteEmail}.`)
+      const result = await api.post<{ success: boolean; linked: boolean }>('/api/invites', { invitee_email: inviteEmail, invitee_role: inviteRole })
+      const msg = result.linked
+        ? `${inviteEmail} already has an account — they'll see the invite in their Alerts tab.`
+        : `Invite created for ${inviteEmail}. Ask them to register with that email, then check their Alerts tab.`
+      setInviteSuccess(msg)
       setInviteEmail('')
       setShowInviteForm(false)
-      const load = async () => {
-        try {
-          const { relationships: data } = await api.get<{ relationships: RelWithUser[] }>('/api/invites')
-          setRelationships(data)
-        } catch { /* silent */ }
-      }
-      load()
+      try {
+        const { relationships: data } = await api.get<{ relationships: RelWithUser[] }>('/api/invites')
+        setRelationships(data)
+      } catch { /* silent */ }
     } catch (e: unknown) {
-      Alert.alert('Could not send invite.', e instanceof Error ? e.message : 'Please try again.')
+      setInviteError(e instanceof Error ? e.message : 'Please try again.')
     }
   }
 
   async function removeConnection(id: string) {
-    Alert.alert('Remove connection?', 'They will no longer have access to your health information.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
-          await api.del('/api/invites', { relationship_id: id })
-          const load = async () => {
-            try {
-              const { relationships: data } = await api.get<{ relationships: RelWithUser[] }>('/api/invites')
-              setRelationships(data)
-            } catch { /* silent */ }
-          }
-          load()
-        },
-      },
-    ])
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm('Remove connection? They will no longer have access to your health information.')
+      : await new Promise<boolean>((resolve) =>
+          Alert.alert('Remove connection?', 'They will no longer have access.', [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Remove', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        )
+    if (!confirmed) return
+    await api.del('/api/invites', { relationship_id: id })
+    try {
+      const { relationships: data } = await api.get<{ relationships: RelWithUser[] }>('/api/invites')
+      setRelationships(data)
+    } catch { /* silent */ }
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Family & Doctor</Text>
+
+      {inviteSuccess && (
+        <View style={styles.successBanner}>
+          <Text style={styles.successText}>{inviteSuccess}</Text>
+        </View>
+      )}
+      {inviteError && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{inviteError}</Text>
+        </View>
+      )}
+
       <ScrollView>
         {relationships.map((r) => (
           <View key={r.id} style={styles.card}>
@@ -141,4 +154,8 @@ const styles = StyleSheet.create({
   roleToggleTextSelected: { color: '#2563eb', fontWeight: '700' },
   sendBtn: { marginBottom: 8 },
   addBtn: { marginTop: 12 },
+  successBanner: { backgroundColor: '#dcfce7', borderRadius: 12, padding: 14, marginBottom: 12 },
+  successText: { fontSize: 15, color: '#15803d' },
+  errorBanner: { backgroundColor: '#fee2e2', borderRadius: 12, padding: 14, marginBottom: 12 },
+  errorText: { fontSize: 15, color: '#dc2626' },
 })
