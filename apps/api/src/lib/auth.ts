@@ -1,24 +1,41 @@
-import { createSupabaseServerClient } from './supabase-server'
+import { createSupabaseServerClient, createSupabaseAdminClient } from './supabase-server'
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import type { User } from '@phc/shared'
 
 export async function requireAuth(): Promise<
   { user: User; error: null } | { user: null; error: NextResponse }
 > {
-  const supabase = createSupabaseServerClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const headersList = await headers()
+  const authHeader = headersList.get('authorization')
 
-  if (error || !user) {
+  let userId: string | null = null
+
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const admin = createSupabaseAdminClient()
+    const { data: { user } } = await admin.auth.getUser(token)
+    if (user) userId = user.id
+  }
+
+  if (!userId) {
+    const supabase = createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) userId = user.id
+  }
+
+  if (!userId) {
     return {
       user: null,
       error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
     }
   }
 
-  const { data: profile } = await supabase
+  const admin = createSupabaseAdminClient()
+  const { data: profile } = await admin
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!profile) {
