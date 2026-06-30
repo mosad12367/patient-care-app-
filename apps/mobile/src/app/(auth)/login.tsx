@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { api } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
@@ -8,11 +8,16 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   async function handleLogin() {
-    if (!email || !password) return
+    if (!email || !password) {
+      setError('Please enter your email and password.')
+      return
+    }
     setLoading(true)
+    setError(null)
     try {
       const { session } = await api.postPublic<{ session: { access_token: string; refresh_token: string } }>(
         '/api/auth/login',
@@ -24,7 +29,7 @@ export default function LoginScreen() {
       })
       // Root guard handles redirect
     } catch (e: unknown) {
-      Alert.alert('Login failed', e instanceof Error ? e.message : 'Please check your email and password.')
+      setError(e instanceof Error ? e.message : 'Invalid email or password. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -53,6 +58,8 @@ export default function LoginScreen() {
         accessibilityLabel="Password"
       />
 
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
       <TouchableOpacity
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleLogin}
@@ -75,6 +82,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 32 },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 10, padding: 16, fontSize: 18, marginBottom: 16 },
+  errorText: { color: '#dc2626', fontSize: 15, marginBottom: 12, textAlign: 'center' },
   button: { backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 18, alignItems: 'center' },
   buttonDisabled: { backgroundColor: '#93c5fd' },
   buttonText: { color: '#fff', fontSize: 20, fontWeight: '600' },
