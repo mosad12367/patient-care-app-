@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, Linking, Alert } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Linking, Alert, TouchableOpacity } from 'react-native'
 import { useAuth } from '@/context/AuthContext'
 import { api } from '@/lib/api'
 import { DoseCard } from '@/components/DoseCard'
@@ -16,7 +16,7 @@ interface DoseWithMed extends DoseLog {
 }
 
 export default function ElderlyHomeScreen() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const router = useRouter()
   const [doses, setDoses] = useState<DoseWithMed[]>([])
   const [confirm, setConfirm] = useState<{ id: string; status: 'taken' | 'missed'; message: string } | null>(null)
@@ -51,7 +51,12 @@ export default function ElderlyHomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.greeting}>{greeting}, {user?.name?.split(' ')[0]}</Text>
+        <View style={styles.header}>
+          <Text style={styles.greeting}>{greeting}, {user?.name?.split(' ')[0]}</Text>
+          <TouchableOpacity onPress={signOut} style={styles.signOutBtn}>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
 
         {nextDose ? (
           <>
@@ -106,7 +111,10 @@ export default function ElderlyHomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   scroll: { padding: 24, paddingBottom: 16 },
-  greeting: { fontSize: 28, fontWeight: '800', marginBottom: 24, color: '#0f172a' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
+  greeting: { fontSize: 28, fontWeight: '800', color: '#0f172a', flex: 1 },
+  signOutBtn: { paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#f1f5f9', borderRadius: 8, marginLeft: 12 },
+  signOutText: { fontSize: 15, color: '#64748b', fontWeight: '600' },
   sectionLabel: { fontSize: 20, fontWeight: '600', color: '#475569', marginBottom: 10 },
   allDone: { backgroundColor: '#dcfce7', borderRadius: 16, padding: 24, alignItems: 'center', marginBottom: 20 },
   allDoneText: { fontSize: 22, color: '#15803d', fontWeight: '700' },

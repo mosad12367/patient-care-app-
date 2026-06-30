@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native'
 import { api } from '@/lib/api'
+import { useAuth } from '@/context/AuthContext'
 import { useElderlyUserId } from '@/hooks/useElderlyUserId'
 import type { DoseLog, SymptomLog } from '@phc/shared'
 
 export default function CaregiverDashboard() {
+  const { user, signOut } = useAuth()
   const elderlyUserId = useElderlyUserId()
   const [doses, setDoses] = useState<DoseLog[]>([])
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([])
@@ -32,7 +34,18 @@ export default function CaregiverDashboard() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Today's Overview</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Today's Overview</Text>
+        <TouchableOpacity onPress={signOut} style={styles.signOutBtn}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+
+      {!elderlyUserId && (
+        <View style={styles.noConnection}>
+          <Text style={styles.noConnectionText}>No elderly user connected yet. Go to the Alerts tab to manage invites.</Text>
+        </View>
+      )}
 
       <View style={styles.statsRow}>
         <View style={[styles.stat, styles.statGreen]}>
@@ -75,7 +88,12 @@ export default function CaregiverDashboard() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: '800', marginBottom: 20 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  title: { fontSize: 24, fontWeight: '800', color: '#0f172a' },
+  signOutBtn: { paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#f1f5f9', borderRadius: 8 },
+  signOutText: { fontSize: 15, color: '#64748b', fontWeight: '600' },
+  noConnection: { backgroundColor: '#fef9c3', borderRadius: 12, padding: 16, marginBottom: 20 },
+  noConnectionText: { fontSize: 15, color: '#854d0e' },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   stat: { flex: 1, borderRadius: 14, padding: 20, alignItems: 'center' },
   statGreen: { backgroundColor: '#dcfce7' },
