@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: authError?.message ?? 'Registration failed' }, { status: 400 })
   }
 
-  const { error: profileError } = await supabase.from('users').insert({
+  const admin = createSupabaseAdminClient()
+  const { error: profileError } = await admin.from('users').insert({
     id: authData.user.id,
     email,
     name,
@@ -31,7 +32,6 @@ export async function POST(request: NextRequest) {
   })
 
   if (profileError) {
-    const admin = createSupabaseAdminClient()
     await admin.auth.admin.deleteUser(authData.user.id)
     return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 })
   }
