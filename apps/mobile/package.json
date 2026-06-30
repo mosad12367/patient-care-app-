@@ -9,6 +9,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@babel/runtime": "^7.24.0",
     "@phc/shared": "workspace:*",
     "@supabase/supabase-js": "^2.43.0",
     "expo": "~52.0.0",
@@ -19,7 +20,8 @@
     "expo-sharing": "~12.0.1",
     "expo-speech": "~13.0.0",
     "react": "18.3.1",
-    "react-native": "0.76.0"
+    "react-native": "0.76.0",
+    "react-native-web": "~0.19.13"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

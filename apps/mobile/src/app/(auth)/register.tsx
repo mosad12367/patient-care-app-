@@ -26,11 +26,14 @@ export default function RegisterScreen() {
     setLoading(true)
     try {
       await api.postPublic('/api/auth/register', { name, email, password, phone: phone || null, role })
-      Alert.alert('Account created', 'Please sign in.', [
-        { text: 'OK', onPress: () => router.replace('/(auth)/login') },
-      ])
+      router.replace('/(auth)/login')
     } catch (e: unknown) {
-      Alert.alert('Registration failed', e instanceof Error ? e.message : 'Please try again.')
+      const msg = e instanceof Error ? e.message : 'Please try again.'
+      if (typeof window !== 'undefined') {
+        window.alert('Registration failed: ' + msg)
+      } else {
+        Alert.alert('Registration failed', msg)
+      }
     } finally {
       setLoading(false)
     }
