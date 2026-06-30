@@ -100,15 +100,16 @@ export async function PATCH(request: NextRequest) {
 
   const admin = createSupabaseAdminClient()
 
+  // Accept by invitee_email OR connected_user_id (handles both invite-before and invite-after registration)
   const { data: rel } = await admin
     .from('relationships')
     .select('*')
     .eq('id', relationship_id)
-    .eq('invitee_email', user.email)
     .eq('status', 'pending')
+    .or(`invitee_email.eq.${user.email},connected_user_id.eq.${user.id}`)
     .single()
 
-  if (!rel) return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
+  if (!rel) return NextResponse.json({ error: 'Invite not found or already processed' }, { status: 404 })
 
   if (action === 'accept') {
     await admin

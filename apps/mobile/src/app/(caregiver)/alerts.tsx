@@ -18,6 +18,7 @@ export default function AlertsScreen() {
   const [patterns, setPatterns] = useState<Array<{ type: string; message: string }>>([])
   const [pendingInvites, setPendingInvites] = useState<RelWithElderly[]>([])
   const [error, setError] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
 
   const loadInvites = useCallback(async () => {
     try {
@@ -45,14 +46,16 @@ export default function AlertsScreen() {
   }
 
   async function respondToInvite(id: string, action: 'accept' | 'reject') {
+    setInviteError(null)
     try {
       await api.patch('/api/invites', { relationship_id: id, action })
       await loadInvites()
       if (action === 'accept') {
-        // Reload page so elderlyUserId picks up the new connection
         window.location.reload()
       }
-    } catch {}
+    } catch (e) {
+      setInviteError(e instanceof Error ? e.message : 'Failed to respond to invite')
+    }
   }
 
   const hasAlerts = missedDoses.length > 0 || patterns.length > 0
@@ -60,6 +63,12 @@ export default function AlertsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Alerts</Text>
+
+      {inviteError && (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>Invite error: {inviteError}</Text>
+        </View>
+      )}
 
       {pendingInvites.length > 0 && (
         <>
