@@ -13,24 +13,29 @@ export async function GET(request: NextRequest) {
   if (user.role === 'elderly') {
     const { data, error: dbError } = await admin
       .from('relationships')
-      .select('*, connected_user:users!relationships_connected_user_id_fkey(id, name, email, role)')
+      .select('*')
       .eq('elderly_user_id', user.id)
     if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
-    return NextResponse.json({ relationships: data })
+
+    // Fetch connected user details separately for each relationship
+    const enriched = await Promise.all(
+      (data ?? []).map(async (rel) => {
+        if (!rel.connected_user_id) return { ...rel, connected_user: null }
+        const { data: u } = await admin.from('users').select('id, name, email, role').eq('id', rel.connected_user_id).single()
+        return { ...rel, connected_user: u ?? null }
+      })
+    )
+    return NextResponse.json({ relationships: enriched })
   }
 
   // Caregiver: fetch by connected_user_id OR by invitee_email (covers invites sent before they registered)
   const [byId, byEmail] = await Promise.all([
-    admin
-      .from('relationships')
-      .select('*, elderly_user:users!relationships_elderly_user_id_fkey(id, name, email, role)')
-      .eq('connected_user_id', user.id),
-    admin
-      .from('relationships')
-      .select('*, elderly_user:users!relationships_elderly_user_id_fkey(id, name, email, role)')
-      .eq('invitee_email', user.email)
-      .is('connected_user_id', null),
+    admin.from('relationships').select('*').eq('connected_user_id', user.id),
+    admin.from('relationships').select('*').eq('invitee_email', user.email).is('connected_user_id', null),
   ])
+
+  const dbError = byId.error ?? byEmail.error
+  if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
 
   const seen = new Set<string>()
   const combined = [...(byId.data ?? []), ...(byEmail.data ?? [])].filter((r) => {
@@ -39,10 +44,15 @@ export async function GET(request: NextRequest) {
     return true
   })
 
-  const query = { data: combined, error: byId.error ?? byEmail.error }
+  // Fetch elderly user details separately for display
+  const enriched = await Promise.all(
+    combined.map(async (rel) => {
+      const { data: u } = await admin.from('users').select('id, name, email, role').eq('id', rel.elderly_user_id).single()
+      return { ...rel, elderly_user: u ?? null }
+    })
+  )
 
-  if (query.error) return NextResponse.json({ error: query.error.message }, { status: 500 })
-  return NextResponse.json({ relationships: query.data })
+  return NextResponse.json({ relationships: enriched })
 }
 
 export async function POST(request: NextRequest) {
